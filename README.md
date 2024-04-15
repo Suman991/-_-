@@ -1,5 +1,4 @@
 
-
 # Number Guessing Game
 
 This is a simple number guessing game implemented in Java. The game generates a random number between a specified range and prompts the player to guess the number. The player continues guessing until they correctly guess the number.
@@ -16,21 +15,17 @@ This is a simple number guessing game implemented in Java. The game generates a 
 
 ### Prerequisites
 
-- Java Development Kit (JDK) installed on your machine.
+- Java Runtime Environment (JRE) installed on your machine.
 
 ### Running the Game
 
 1. Clone the repository to your local machine:
 
-
 2. Navigate to the project directory:
-
 
 3. Compile the Java files:
 
-
 4. Run the game:
-
 
 5. Follow the on-screen instructions to play the game.
 
