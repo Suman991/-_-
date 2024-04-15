@@ -1,3 +1,9 @@
+| __ \ | | | \ | | ()
+| |__) | _ _ __ ___ __ | | ___ _ | | | _ _ __ ___ _ _______ _ __
+| / _ | '__/ __|/ _ | / _ | '| . ` | | | | '/ | | / _ \ '__|
+| | | (| | | _ \ (| | || () | | | |\ | || | | __ \ |/ / / |
+|| _,|| |/_,|__/|| || _|_,|| |//_|_|
+
 # Number Guessing Game
 
 This is a simple number guessing game implemented in Java. The game generates a random number between a specified range and prompts the player to guess the number. The player continues guessing until they correctly guess the number.
