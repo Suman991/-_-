@@ -14,6 +14,7 @@ public class GuessNumber extends  JFrame {
     private JButton clearButton;
     private  int attempt;
     private final int actualNumb;
+
     private int getRandomNumber(int lowerBound,int upperBound){
         int range=upperBound-lowerBound+1;
         return (int)(Math.random()*range+lowerBound);

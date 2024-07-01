@@ -58,7 +58,7 @@ public class Main {
                         s1.transactionHistory();
                         break;
                     case 6:
-                        System.out.println("Exit");
+                        System.out.println("Thank You for using our A.T.M");
                         System.exit(0);
                     case 7:
                         System.out.println("Invalid choice\n");
