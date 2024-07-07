@@ -1,19 +1,18 @@
 package Task3.ATM;
 import java.sql.*;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 import java.util.Scanner;
 
 public class Solution {
-    private int id;
-    private int pin;
+    private String card;
+    private String pin;
     private double balance;
-    private String tranHistory;
     public boolean loginStatus;
     int transactionLimit=5;
     private Connection con;
+    private Scanner sc=new Scanner(System.in);
 
     private void JDBC(){
         String url = "jdbc:mysql://localhost:3306/db1";
@@ -28,53 +27,55 @@ public class Solution {
     Solution(){
         JDBC();
     }
-    Scanner sc=new Scanner(System.in);
+
+
      void register(){
-        System.out.println("<------- USER CREATION--------->");
+        System.out.println("<------- Register Yourself --------->");
         System.out.println();
-        System.out.println("ENTER Your 6 DIGIT Id:");
-        this.id=sc.nextInt();
+        System.out.println("ENTER Your 12 DIGIT Card Number:");
+        this.card =sc.next();
         System.out.println("SET Your 4 DIGIT PIN:");
-        this.pin=sc.nextInt();
+        this.pin=sc.next();
         System.out.println();
 
-        String query="insert into bank(id,password) values(?,?);";
+        String query="insert into bank(card_no,pin_no) values(?,?);";
         try {
+            if(card.length()!=12 && pin.length()!=4)
+                throw new Exception("<----!!!! Invalid Card Number or Pin Number !!!!----->\n");
             PreparedStatement ps = con.prepareStatement(query);
-            ps.setInt(1,id);
-            ps.setInt(2,pin);
+            ps.setString(1, card);
+            ps.setString(2,pin);
             ps.execute();
             System.out.println("You are Successfully Registered\n");
         }catch (Exception e){
-            System.out.println("!!!!! Id Already Registered!!!!!!\n");
             System.out.println(e.getMessage());
         }
     }
 
      void login(){
-        System.out.println("<--------- USER VERIFICATION----------->");
+        System.out.println("<--------- Please Login to Proceed ----------->");
         System.out.println();
-        System.out.println("ENTER Your Id:");
-        this.id=sc.nextInt();
+        System.out.println("ENTER Your Card Number:");
+        this.card =sc.next();
         System.out.println("ENTER Your 4 DIGIT PIN:");
-        this.pin=sc.nextInt();
+        this.pin=sc.next();
         System.out.println();
 
-        String query="select password from bank where id=?;";
+        String query="select pin_no from bank where card_no=?;";
         try {
             PreparedStatement ps = con.prepareStatement(query);
-            ps.setInt(1,id);
+            ps.setString(1, card);
             ResultSet rs=ps.executeQuery();
-            int pass=0;
+            String pinNo =null;
             while (rs.next()){
-                pass=rs.getInt("password");
+                pinNo =rs.getString("pin_no");
             }
-            if(pass==pin){
+            if(Objects.equals(pinNo, pin)){
                 loginStatus=true;
-                System.out.println("You are Successfully Login\n");
+                System.out.println("Login Successful\n");
             }
             else
-                System.out.println("<----!!!! Invalid ID or PIN !!!!----->\n");
+                System.out.println("<----!!!! Invalid Card Number or PIN Number !!!!----->\n");
         }catch (Exception e){
             System.out.println(e.getMessage());
         }
@@ -82,10 +83,10 @@ public class Solution {
 
     double getBalance(){
          double bal=0;
-        String query="select balance from bank where id=?;";
+        String query="select balance from bank where card_no=?;";
         try {
             PreparedStatement ps = con.prepareStatement(query);
-            ps.setInt(1,id);
+            ps.setString(1, card);
             ResultSet rs=ps.executeQuery();
             while (rs.next()){
                 bal=rs.getDouble("balance");
@@ -96,61 +97,77 @@ public class Solution {
          return  bal;
     }
 
-    void deposit(){
-        transactionLimit--;
-        balance=getBalance();  //cur bal fetched from DB
-        System.out.println("Enter Deposit Amount:");
-        double amt=sc.nextDouble();
-        balance+=amt;
-
+    String getDateTime(){
         LocalDateTime d=LocalDateTime.now();
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yy HH:mm:ss");
-        String dT=d.format(dtf);
-        StringBuilder bf=new StringBuilder();
-        bf.append(amt).append("Rs--Cr--").append(dT).append(" || ");
+        return d.format(dtf);
+    }
 
-        //for concat function set DEFAULT value=" " for thc column "history"
-        String query=" update bank set balance=?, history=concat(history,?) where id=?;";
-        try {
-            PreparedStatement ps = con.prepareStatement(query);
-            ps.setDouble(1,balance);
-            ps.setString(2,bf.toString());
-            ps.setInt(3,id);
-            ps.execute();
-            System.out.println("Amount Deposited to your Account");
-            System.out.println("Current balance:"+balance+"\n");
-            System.out.println("Remaining Limit:"+transactionLimit+"\n");
-        }catch (Exception e){
-            System.out.println(e.getMessage());
-        }
+    void deposit(){
+
+        balance=getBalance();  //cur bal fetched from DB
+        System.out.println("Enter Deposit Amount:");
+        int  amt=sc.nextInt();
+            String query=" insert into pass_book(card_num, credit, date, cur_bal) values (?,?,?,?);";
+            try {
+                if(amt%100!=0)
+                    throw new Exception("!!!! Amount must be Multiple of 100 !!!!!");
+                balance+=amt;
+                PreparedStatement ps = con.prepareStatement(query);
+                ps.setString(1,card);
+                ps.setInt(2,amt);
+                ps.setString(3,getDateTime());
+                ps.setDouble(4,balance);
+                ps.execute();
+
+                String qry="update bank set balance=? where card_no=?";
+                ps=con.prepareStatement(qry);
+                ps.setDouble(1,balance);
+                ps.setString(2,card);
+                ps.execute();
+
+                System.out.println("Amount Deposited to your Account");
+                System.out.println("Current balance:"+balance+"\n");
+
+                transactionLimit--;
+                System.out.println("Remaining Limit:"+transactionLimit+"\n");
+            }catch (Exception e){
+                System.out.println(e.getMessage());
+            }
     }
 
     void withDraw(){
-        transactionLimit--;
+
         balance=getBalance();  //cur bal fetched from DB
         System.out.println("Enter Amount:");
-        double amt=sc.nextDouble();
-
-        LocalDateTime d=LocalDateTime.now();
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yy HH:mm:ss");
-        String dT=d.format(dtf);
-        StringBuilder bf=new StringBuilder();
-        bf.append(amt).append("Rs--Dr--").append(dT).append(" || ");
-
+        int  amt=sc.nextInt();
         try {
             if(amt>balance)
-                throw new Exception("<------!!!! INSUFFICIENT BALANCE!!!!------->");
+                throw new Exception("<------!!!! Insufficient Balance !!!!------->");
+            if(amt%100!=0)
+                throw new Exception("!!!! Amount must be Multiple of 100 !!!!!");
             balance -= amt;
-            String query=" update bank set balance=?,history=concat(history,?) where id=?;";
+
+            String query=" insert into pass_book(card_num, debit, date, cur_bal) values (?,?,?,?);";
             PreparedStatement ps = con.prepareStatement(query);
-            ps.setDouble(1,balance);
-            ps.setString(2,bf.toString());
-            ps.setInt(3,id);
+            ps.setString(1,card);
+            ps.setInt(2,amt);
+            ps.setString(3,getDateTime());
+            ps.setDouble(4,balance);
             ps.execute();
-            System.out.println("Amount deducted  from your Account");
+
+            String qry="update bank set balance=? where card_no=?";
+            ps=con.prepareStatement(qry);
+            ps.setDouble(1,balance);
+            ps.setString(2,card);
+            ps.execute();
+
+            transactionLimit--;
+            System.out.println("Amount deducted from from Account");
             System.out.println("Current balance:"+balance+"\n");
             System.out.println("Remaining Limit:"+transactionLimit+"\n");
-        }catch (Exception e){
+        }
+        catch (Exception e){
             System.out.println(e.getMessage());
             System.out.println("Current balance:"+balance+"\n");
             System.out.println("Remaining Limit:"+transactionLimit+"\n");
@@ -158,23 +175,31 @@ public class Solution {
     }
 
     void transfer(){
+        ///sc.nextLine();
         System.out.println("Enter Recipient's  Account No:");
         String acNo=sc.next();
         System.out.println("Enter Recipient's  IFSC code:");
-        String ifsc=sc.next();
-        withDraw();
+        String ifscCode=sc.next();
+
+        withDraw(); //need modification related to withdrawal amount
     }
 
     void transactionHistory(){
-        String query="select history from bank where id=?;";
+
+        String query="select * from pass_book where card_num=?";
         try {
+            double drAmt,crAmt,bal;
+            String dateTime;
             PreparedStatement ps = con.prepareStatement(query);
-            ps.setInt(1,id);
+            ps.setString(1,card);
             ResultSet rs=ps.executeQuery();
             while (rs.next()){
-               tranHistory=rs.getString("history");
+                drAmt=rs.getInt(2);
+                crAmt=rs.getInt(3);
+                dateTime=rs.getString(4);
+                bal=rs.getDouble(5);
+                System.out.println(drAmt+" Dr || "+crAmt+" Cr || "+dateTime+" || "+bal);
             }
-            System.out.println(tranHistory+"\n");
         }catch (Exception e){
             System.out.println(e.getMessage());
         }

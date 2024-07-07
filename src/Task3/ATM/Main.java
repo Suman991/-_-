@@ -2,26 +2,13 @@ package Task3.ATM;
 import java.util.Scanner;
 
 public class Main {
+    static Solution s1=new Solution();
+
     public static void main(String[] args) {
-        Solution s1=new Solution();
-        int ch=0;
+        getOption();     // Find out Login or Register  ??
+
+        int ch;
         Scanner sc=new Scanner(System.in);
-        while(ch!=1&&ch!=2){
-            System.out.println("<------press------>  \n|| 1--> Login  || 2--> Register||\n");
-            System.out.println();
-            System.out.println("Enter Your Choice:");
-            ch=sc.nextInt();
-            switch(ch){
-                case 1:
-                    s1.login();
-                    break;
-                case 2:
-                    s1.register();
-                    break;
-                default:
-                    System.out.println("Invalid Choice\n");
-            }
-        }
         while(true) {
             if(s1.transactionLimit==0){
                 System.out.println("------!!!Daily Limit Exceeded!!!!-------\n");
@@ -58,19 +45,37 @@ public class Main {
                         s1.transactionHistory();
                         break;
                     case 6:
-                        System.out.println("Thank You for using our A.T.M");
+                        System.out.println("Thank You for using our ATM");
                         System.exit(0);
                     case 7:
                         System.out.println("Invalid choice\n");
                 }
             }
             else {
-                s1.login();
+                getOption();
             }
         }
-
-
-
-
     }
+
+    static void getOption(){
+        Scanner sc=new Scanner(System.in);
+        int ch=0;
+        while(ch!=1&&ch!=2){
+            System.out.println("<------Press------>  \n|| 1--> Login    || \n|| 2--> Register ||\n");
+            System.out.println();
+            System.out.println("Enter Your Choice:");
+            ch=sc.nextInt();
+            switch(ch){
+                case 1:
+                    s1.login();
+                    break;
+                case 2:
+                    s1.register();
+                    break;
+                default:
+                    System.out.println("Invalid Choice\n");
+            }
+        }
+    }
+
 }
